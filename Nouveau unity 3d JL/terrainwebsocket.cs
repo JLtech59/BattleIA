@@ -1,41 +1,4 @@
-﻿/*using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using System;
-using System.Net.WebSockets;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-//using BattleIA;
-
-
-public class terrainwebsocket : MonoBehaviour
-{
-    Uri u = new Uri("ws://127.0.0.1:4226/display"); //attention il faut modif le 2626
-    ClientWebSocket cws = null;
-    //ArraySegment<byte> buf = new ArraySegment<byte>(new byte[1024]);
-    
-    void Start()
-    {
-        Connect();
-    }
-
-    void Update()
-    {
-        
-    }
-    async void Connect()
-    {
-        cws = new ClientWebSocket();
-        try
-        {
-            await cws.ConnectAsync(u, CancellationToken.None);
-            if (cws.State == WebSocketState.Open) Debug.Log("connected");
-        }
-        catch (Exception e) { Debug.Log("woe " + e.Message); }
-    }
-}*/
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -49,13 +12,19 @@ public class terrainwebsocket : MonoBehaviour
     public static int height;
     public static int width;
     public static bool isConnect;
-    public static bool receivedmapinfo;
-    public static int bx1, by1, bx2, by2, cx1,cy1,ex1,ey1;
+    public static bool receivedmapinfo, needtoremove, needtomovebot, newbot;
+    public static int bx1, by1, bx2, by2, cx1,cy1,ex1,ey1,m2,m3,rx1,ry1;
+    public static byte[] mapInfos;
+    
 // Start is called before the first frame update
 async void Start()
     {
+        
         isConnect = false;
         receivedmapinfo = false;
+        needtoremove = false;
+        needtomovebot = false;
+        newbot = false;
         websocket = new WebSocket("ws://127.0.0.1:4626/display");//url
 
         websocket.OnOpen += () =>
@@ -86,16 +55,54 @@ async void Start()
             // getting the message as a string
             var message = System.Text.Encoding.UTF8.GetString(bytes);
             //Debug.Log("OnMessage! " + message);
+            /* switch (bytes[0])
+             {
+                 case System.Text.Encoding.ASCII.GetBytes("M")[0]:
+
+             }*/
+            Debug.Log("OnMessage! " + message);
             if (bytes[0]== System.Text.Encoding.ASCII.GetBytes("M")[0])
             {
-              //  Debug.Log("OnMessage! " + message);
+               
                 receivedmapinfo = true;
                 height = bytes[3];
                 width = bytes[1];
-                Debug.Log(height);
-                Debug.Log(width);
+                //Debug.Log(height);
+                int surface = width * height;
+                mapInfos = new byte[surface];
+                //Debug.Log("surface" + surface);
+                //Debug.Log("new bot");
+                newbot = true;
+                for (int i = 0; i < surface; i++)
+                    {
+                        
+                        mapInfos[i] = bytes[i+5];
+                    //Debug.Log("mapInfos" + mapInfos[i]);
+
+                }
+                for (int i = 0; i < width; i++)
+                {
+
+                    mapInfos[i] = 0;
+                    
+                }
+                for (int i = surface-width; i < surface; i++)
+                {
+
+                    mapInfos[i] = 0;
+                    
+
+                }
+                for (int i = width; i < surface; i += width)
+                {
+                    mapInfos[i] = 0;
+                    mapInfos[i - 1] = 0;
+                }
+
+
+
             }
-           if(bytes[0]== System.Text.Encoding.ASCII.GetBytes("E")[0])
+            if (bytes[0]== System.Text.Encoding.ASCII.GetBytes("E")[0])
            {
                 //Debug.Log("OnMessage! " + message);
                 //Debug.Log("energie");
@@ -109,8 +116,10 @@ async void Start()
                 by1 = bytes[2];
                 bx2 = bytes[3];
                 by2 = bytes[4];
-                
+                needtomovebot = true;
+               // Debug.Log("bot info 1 " + bx1 + by1 +"new"+ bx2 + by2);
             }
+            
             if (bytes[0] == System.Text.Encoding.ASCII.GetBytes("C")[0])
             {
                 cx1 = bytes[1];
@@ -118,6 +127,21 @@ async void Start()
 
                  
             }
+            if (bytes[0] == System.Text.Encoding.ASCII.GetBytes("R")[0])
+            {
+                rx1 = bytes[1];
+                ry1 = bytes[2];
+                needtoremove = true;
+                
+            }
+            else{
+                needtoremove = false;
+            }
+            if (bytes[0] == System.Text.Encoding.ASCII.GetBytes("B")[0])
+            {
+                
+            }
+
         };
 
 

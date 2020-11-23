@@ -10,14 +10,14 @@ public class terraindata : MonoBehaviour
 {
     public GameObject mur;
     public GameObject terrain;
-    public GameObject robot;
+    public GameObject robot,explosion;
     public GameObject energie;
     public GameObject centreterrain;
     public int lenght = 10;
     public int width = 10;
-    public int[] mapinfo;
-    private bool[] isempty;
-    private GameObject[] typeobjs;
+    public byte[] mapinfo;
+    public bool[] isempty;
+    public GameObject[] typeobjs;
     private bool isSelected;
     private bool done = false;
     //private int previousw, previousl;
@@ -41,63 +41,19 @@ public class terraindata : MonoBehaviour
         if(!done)
             {
             done = true;
-            width = terrainwebsocket.height;
-            lenght = terrainwebsocket.width;
+            lenght = terrainwebsocket.height;
+            width = terrainwebsocket.width;
 
-
+            
             GenerateTerrain();
             Debug.LogWarning("terminé");
             }
 
-        clearcase();
-
-        moveBot();
-
-        addEnergiy();
-        /*previousl = lenght;
-        previousw = width;
-        //width = gestionui.largeur;
-        //lenght = gestionui.longeur;
-        width = 30;
-        lenght = 24;
-        murs = GameObject.FindGameObjectsWithTag("Mur");
-        if (!isSelected)
-        {
-            if(previousl!=lenght || previousw!= width)
-            {
-                foreach(GameObject mur in murs)
-                {
-                    DestroyImmediate(mur);
-
-                }
-                isempty = new bool[lenght * width];
-                mapinfo = new int[lenght * width];
-                typeobjs = new GameObject[lenght * width];
-                centreterrain.transform.position = new Vector3(lenght / 2 - 0.5f, 1, width / 2 - 0.5f);
-
-                Debug.Log("nouveauterrain");
-                GenerateTerrain();
-                for (int i = 0; i > lenght * width; i++)
-                {
-                    float j = UnityEngine.Random.Range(0, 6);
-                    if (j == 5)
-                    {
-                        Debug.Log("new obj");
-                        mapinfo[i] = UnityEngine.Random.Range(1, 5);
-                    }
-
-                }
-            }
-
-            isSelected = gestionui.isPressed;
-
-        }
-
-        //GameObject newmur = Instantiate(mur, new Vector3(10,0,10), Quaternion.identity) as GameObject;
-        //Debug.Log("nouveauterrain1");
-        */
+        
+        
         updateTerrain();
-        }
+        
+    }
         void GenerateTerrain()
         {
             for (int x = 0; x < lenght; x++)
@@ -131,21 +87,77 @@ public class terraindata : MonoBehaviour
                 }
             }
         isempty = new bool[lenght * width];
-        mapinfo = new int[lenght * width];
+        mapinfo = new byte[lenght * width];
+        mapinfo = terrainwebsocket.mapInfos;
         typeobjs = new GameObject[lenght * width];
         centreterrain.transform.position = new Vector3(lenght / 2 - 0.5f, 1, width / 2 - 0.5f);
 
         Debug.Log("nouveauterrain");
+        for (int i = 0; i <= mapinfo.Length; i++)
+        {
+          
+            if (mapinfo[i] == 4 )
+            {
+                float posobjx = i / width;
+                posobjx = Mathf.Floor(posobjx);
 
+                int posobjz = (i % width);
+
+                Vector3 positionobj = new Vector3(posobjx, 1, posobjz);
+                //Vector3 positionobj = new Vector3(terrainwebsocket.bx2, 1, terrainwebsocket.by2);
+                GameObject bot = Instantiate(robot, positionobj, Quaternion.identity) as GameObject;
+                typeobjs[i] = bot;
+                isempty[i] = false;
+
+
+            }
+            if (mapinfo[i] == (byte)2 )
+            {
+
+                float posobjx = i / width;
+                posobjx = Mathf.Floor(posobjx);
+
+                int posobjz = (i % width);
+
+                Vector3 positionobj = new Vector3(posobjx, 1.25f, posobjz);
+
+                GameObject newmur = Instantiate(mur, positionobj, Quaternion.identity) as GameObject;
+                typeobjs[i] = newmur;
+                isempty[i] = false;
+            }
+            if (mapinfo[i] == (byte)3 )
+            {
+                float posobjx = i / width;
+                posobjx = Mathf.Floor(posobjx);
+
+                int posobjz = (i % width);
+                Vector3 positionobj = new Vector3(posobjx, 0.75f, posobjz);
+                GameObject ene = Instantiate(energie, positionobj, Quaternion.identity) as GameObject;
+                isempty[i] = false;
+                typeobjs[i] = ene;
+            }
+
+
+        }
 
 
     }
         void updateTerrain()
         {
+            clearcase();
 
-            for (int i = 0; i <= mapinfo.Length; i++)
-            {
-                if (mapinfo[i] == 0 || mapinfo[i] > 4)
+            moveBot();
+
+            addEnergiy();
+            
+            removePlayer();
+            
+            
+
+
+        for (int i = 0; i <= width*lenght; i++)
+        {
+                if (mapinfo[i] == 0 )
                 {
                     isempty[i] = true;
                     if (typeobjs[i] != null)
@@ -155,22 +167,58 @@ public class terraindata : MonoBehaviour
                 }
                 if (mapinfo[i] == 4 && isempty[i])
                 {
-                /*float posobjx = i / width;
-                posobjx = Mathf.Floor(posobjx);
-                int posobjz = (i % width);
+                /*calcul coord avant
+                    int j = (terrainwebsocket.by1 * width) + terrainwebsocket.bx1;
 
-                Vector3 positionobj = new Vector3(posobjx, 1, posobjz);*/
-                Vector3 positionobj = new Vector3(terrainwebsocket.bx2, 1, terrainwebsocket.by2);
+                    float posobjxav = j / width;
+                    posobjxav = Mathf.Floor(posobjxav);
+
+                    int posobjzav = (j % width);
+                    Vector3 positionobjav = new Vector3(posobjxav, 1, posobjzav);
+                //nouvelle coord
+                float posobjx = i / width;
+                    posobjx = Mathf.Floor(posobjx);
+
+                    int posobjz = (i % width);
+
+                    Vector3 positionobj = new Vector3(posobjx, 1, posobjz);
+                    //Vector3 positionobj = new Vector3(terrainwebsocket.bx2, 1, terrainwebsocket.by2);
+                    if (!terrainwebsocket.newbot)
+                    {
+                     
+                    typeobjs[j].transform.position = Vector3.Lerp(positionobjav, positionobj, 1);
+
+                    typeobjs[i] = typeobjs[j];
+                    typeobjs[j] = null;
+                    isempty[j] = true;
+                    isempty[i] = false;
+                    mapinfo[j] = 0;
+                   // Debug.Log("je translate un  bot");
+                    }
+                    else
+                    {
+                    GameObject bot = Instantiate(robot, positionobjav, Quaternion.identity) as GameObject;
+                    typeobjs[j] = bot;
+                    isempty[j] = false;
+                    terrainwebsocket.newbot = false;
+                    mapinfo[j] = 4;
+                    //Debug.Log("je créé un  bot");
+                }  */
+                    float posobjx = i / width;
+                    posobjx = Mathf.Floor(posobjx);
+
+                    int posobjz = (i % width);
+
+                    Vector3 positionobj = new Vector3(posobjx, 1, posobjz);
+
                 GameObject bot = Instantiate(robot, positionobj, Quaternion.identity) as GameObject;
                 typeobjs[i] = bot;
                 isempty[i] = false;
-
-                
                 
 
 
-                }
-                if (mapinfo[i] == 2 && isempty[i])
+            }
+                if (mapinfo[i] == (byte)2 && isempty[i])
                 {
 
                     float posobjx = i / width;
@@ -178,13 +226,13 @@ public class terraindata : MonoBehaviour
 
                     int posobjz = (i % width);
 
-                    Vector3 positionobj = new Vector3(posobjx, 0.5f, posobjz);
+                    Vector3 positionobj = new Vector3(posobjx, 1.25f, posobjz);
 
                     GameObject newmur = Instantiate(mur, positionobj, Quaternion.identity) as GameObject;
                     typeobjs[i] = newmur;
                     isempty[i] = false;
                 }
-                if (mapinfo[i] == 3 && isempty[i])
+                if (mapinfo[i] == (byte)3 && isempty[i])
                 {
 
                 /* float posobjx = i / width;
@@ -197,14 +245,19 @@ public class terraindata : MonoBehaviour
                  GameObject ene = Instantiate(energie, positionobj, Quaternion.identity) as GameObject;
                  typeobjs[i] = ene;
                  isempty[i] = false;*/
-                Vector3 positionobj = new Vector3(terrainwebsocket.ex1, 0.5f, terrainwebsocket.ey1);
+                //Vector3 positionobj = new Vector3(terrainwebsocket.ey1,0.75f, terrainwebsocket.ex1);
+                float posobjx = i / width;
+                posobjx = Mathf.Floor(posobjx);
+                int posobjz = (i % width);
+                
+                Vector3 positionobj = new Vector3(posobjx, 0.5f, posobjz);
                 GameObject ene = Instantiate(energie, positionobj, Quaternion.identity) as GameObject;
                 
 
                 
                 isempty[i] = false;
                 typeobjs[i] = ene;
-            }
+                }
 
 
             }
@@ -213,23 +266,31 @@ public class terraindata : MonoBehaviour
     void clearcase()
     {
         int i = (terrainwebsocket.cx1 * width) + terrainwebsocket.cy1;
-        mapinfo[i] = 0;
-        DestroyImmediate(typeobjs[i]);
-        typeobjs[i] = null;
-        isempty[i] = true;
+        //mapinfo[i] = 0;
+        //DestroyImmediate(typeobjs[i]);
+        //typeobjs[i] = null;
+        //isempty[i] = true;
     }
     void moveBot()
     {
-        //Vector3 positionobj = new Vector3(terrainwebsocket.bx2, 1, terrainwebsocket.by2);
-        //GameObject bot = Instantiate(robot, positionobj, Quaternion.identity) as GameObject;
-        int i = (terrainwebsocket.by2 * width) + terrainwebsocket.bx2;
-        int j = (terrainwebsocket.by1 * width) + terrainwebsocket.bx1;
-        
-        mapinfo[i] = 4;
-        mapinfo[j] = 0;
-        //isempty[i] = false;
-       // typeobjs[i] = bot;
+        if (terrainwebsocket.needtomovebot)
+        {
+            int j = (terrainwebsocket.by1 * width) + terrainwebsocket.bx1;
 
+            //Vector3 positionobj = new Vector3(terrainwebsocket.bx2, 1, terrainwebsocket.by2);
+            //GameObject bot = Instantiate(robot, positionobj, Quaternion.identity) as GameObject;
+            int i = (terrainwebsocket.by2 * width) + terrainwebsocket.bx2;
+            //int j = (terrainwebsocket.by1 * width) + terrainwebsocket.bx1;
+            
+            mapinfo[i] = 4;
+            mapinfo[j] = 0;
+            DestroyImmediate(typeobjs[j]);
+            //isempty[i] = false;
+            // typeobjs[i] = bot;
+            Debug.LogWarning("bot action bouge en i : " + i);
+            terrainwebsocket.needtomovebot = false;
+        }
+        
     }
     void addEnergiy()
     {
@@ -238,6 +299,24 @@ public class terraindata : MonoBehaviour
         int i = (terrainwebsocket.ey1 * width) + terrainwebsocket.ex1;
 
         mapinfo[i] = 3;
-        
+        Debug.LogWarning("enrgie en : " + i);
+        mapinfo[0] = 0;
+    }
+    public void removePlayer()
+    {
+        if (terrainwebsocket.needtoremove)
+        {
+
+
+            int i = (terrainwebsocket.ry1 * width) + terrainwebsocket.rx1;
+            //Debug.LogWarning("bot doit dégagé en : " + i);
+            mapinfo[i] = 0;
+            float posobjx = i / width;
+            posobjx = Mathf.Floor(posobjx);
+            int posobjz = (i % width);
+            Vector3 positionobj = new Vector3(posobjx, 1, posobjz);
+            GameObject boum = Instantiate(explosion, positionobj, Quaternion.identity) as GameObject;
+            terrainwebsocket.needtoremove = false;
+        }
     }
 }
