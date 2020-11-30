@@ -6,7 +6,7 @@ namespace BattleIA
     {
         // Fix data
         public Guid GUID;
-        public string Name;
+        public string Name = "LOADING";
 
         // variables data
         public UInt16 Energy;

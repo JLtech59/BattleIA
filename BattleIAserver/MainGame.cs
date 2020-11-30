@@ -416,7 +416,9 @@ namespace BattleIAserver
                 RemoveViewer(o.ClientGuid);
             Console.WriteLine($"#display: {AllViewer.Count}");
             // on se met à l'écoute des messages de ce client
+            BroadCastMapInfo();
             RefreshViewer();
+
             await client.WaitReceive();
 
             RemoveViewer(client.ClientGuid);
@@ -464,7 +466,9 @@ namespace BattleIAserver
                 AllBot.Add(client);
             };
             // fin du ménage
+            BroadCastMapInfo();
             RefreshViewer();
+
             //Console.WriteLine("Do it!");
             foreach (OneBot o in toRemove)
                 RemoveBot(o.ClientGuid);
@@ -544,7 +548,9 @@ namespace BattleIAserver
             if (toRemove != null)
             {
                 ViewerRemovePlayer(toRemove.bot.X, toRemove.bot.Y);
+                BroadCastMapInfo();
                 RefreshViewer();
+
             }
             Console.WriteLine($"#bots: {AllBot.Count}");
         }
@@ -574,9 +580,18 @@ namespace BattleIAserver
             {
                 foreach (OneDisplay o in AllViewer)
                 {
-                    o.SendMapInfo();
-
                     o.SendBotInfo();
+                }
+            }
+        }
+
+        public static void BroadCastMapInfo()
+        {
+            lock (lockListViewer)
+            {
+                foreach (OneDisplay o in AllViewer)
+                {
+                    o.SendMapInfo();
                 }
             }
         }
