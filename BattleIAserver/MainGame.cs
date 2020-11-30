@@ -550,7 +550,7 @@ namespace BattleIAserver
             {
                 ViewerClearCase(toRemove.bot.X, toRemove.bot.Y);
                 ViewerRemovePlayer(toRemove.bot.X, toRemove.bot.Y);
-                BroadCastMapInfo();
+                //BroadCastMapInfo(); pour le display => lag du remove
                 RefreshViewer();
 
             }
