@@ -548,6 +548,7 @@ namespace BattleIAserver
             }
             if (toRemove != null)
             {
+                ViewerClearCase(toRemove.bot.X, toRemove.bot.Y);
                 ViewerRemovePlayer(toRemove.bot.X, toRemove.bot.Y);
                 BroadCastMapInfo();
                 RefreshViewer();
