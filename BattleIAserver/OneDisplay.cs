@@ -59,13 +59,14 @@ namespace BattleIAserver
                 if (command == "*")
                 {
                     var b = new byte[1];
-                    b[0]=(byte)'*';
+                    b[0] = (byte)'*';
                     await webSocket.SendAsync(new ArraySegment<byte>(b, 0, 1), WebSocketMessageType.Text, true, CancellationToken.None);
                     return;
                 }
-                if (command =="S"){
+                if (command == "S")
+                {
                     MainGame.RunSimulator();
-                     return;
+                    return;
                 }
                 if (command != "M")
                 {
@@ -114,7 +115,18 @@ namespace BattleIAserver
             int index = 5;
             for (int j = 0; j < MainGame.Settings.MapHeight; j++)
                 for (int i = 0; i < MainGame.Settings.MapWidth; i++)
-                    buffer[index++] = (byte)MainGame.TheMap[i, j];
+                {
+                    if (MainGame.TheMap[i, j] == BattleIA.CaseState.Ennemy || MainGame.TheMap[i, j] == BattleIA.CaseState.OurBot)
+                    {
+                        buffer[index++] = (byte)BattleIA.CaseState.Empty;
+                    }
+                    else
+                    {
+                        buffer[index++] = (byte)MainGame.TheMap[i, j];
+                    }
+
+                }
+
             try
             {
                 Console.WriteLine("[DISPLAY] Sending MAPINFO ...");
@@ -137,18 +149,22 @@ namespace BattleIAserver
             int index = 0;
             foreach (OneBot oc in MainGame.AllBot)
             {
-                buffer[2+index] = (byte)oc.bot.Energy;
-                buffer[3+index] = (byte)oc.bot.X;
-                buffer[4+index] = (byte)oc.bot.Y;
-                buffer[5+index] = (byte)oc.bot.Score;
-                for (int i=0;i<9;i++){    
-                    if (oc.bot.Name != null && i < oc.bot.Name.Length){
-                        buffer[6+i+index] = (byte)oc.bot.Name[i];
-                    } else {
-                        buffer[6+i+index] = (byte)' ';
+                buffer[2 + index] = (byte)oc.bot.Energy;
+                buffer[3 + index] = (byte)oc.bot.X;
+                buffer[4 + index] = (byte)oc.bot.Y;
+                buffer[5 + index] = (byte)oc.bot.Score;
+                for (int i = 0; i < 9; i++)
+                {
+                    if (oc.bot.Name != null && i < oc.bot.Name.Length)
+                    {
+                        buffer[6 + i + index] = (byte)oc.bot.Name[i];
+                    }
+                    else
+                    {
+                        buffer[6 + i + index] = (byte)' ';
                     }
                 }
-                index+=13;
+                index += 13;
             }
 
 
